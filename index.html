@@ -32,6 +32,7 @@
 
   <!-- Add your site or application content here -->
   <svg class="chart"></svg>
+  <svg class="chart2"></svg>
 
   <script>
       function makeApiCall() {
@@ -74,7 +75,54 @@
               }
             },
             subchart: {
+              show: true,
+              axis: {
+                x:{
+                  show:false
+                }
+              }
+            },
+            legend: {
+              hide: 'Heart Rate (bpm)'
+            }
+          });
+
+          var chart2 = c3.generate({
+            bindto: d3.select('.chart2'),
+            data: {
+              x: 'Timestamp',
+              xFormat: '%m/%d/%Y %H:%M:%S',
+              rows: sheetRows,
+              // axes: {
+              //   'Heart Rate (bpm)': 'y2'
+              // },
+            },
+            axis: {
+              x: {
+
+                type: 'timeseries',
+                tick: {
+                  format: '%Y-%m-%d %H:%M',
+                  // rotate: -90
+                }
+              },
+              y2: {
                 show: true
+              }
+            },
+            subchart: {
+              show: true,
+              axis: {
+                x:{
+                  show:false
+                }
+              }
+            },
+            legend: {
+              hide: [
+                  "Systolic Blood Pressure (mmHg)",
+                  "Diastolic Blood Pressure (mmHg)",
+              ]
             }
           });
 
