@@ -260,3 +260,8 @@ textarea {
     page-break-after: avoid;
   }
 }
+
+.chart{
+  width: 100%;
+  min-height: 400px;
+}
