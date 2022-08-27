@@ -53,7 +53,25 @@
           var chart = c3.generate({
             bindto: d3.select('.chart'),
             data: {
-              rows: sheetRows
+              x: 'Timestamp',
+              xFormat: '%m/%d/%Y %H:%M:%S',
+              rows: sheetRows,
+              axes: {
+                'Heart Rate (bpm)': 'y2'
+              },
+            },
+            axis: {
+              x: {
+
+                type: 'timeseries',
+                tick: {
+                  format: '%Y-%m-%d %H:%M',
+                  rotate: -90
+                }
+              },
+              y2: {
+                show: true
+              }
             }
           });
 
