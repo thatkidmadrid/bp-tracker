@@ -261,13 +261,18 @@ textarea {
   }
 }
 
+main {
+    padding: 2em;
+}
+
 .chart {
   width: 100%;
-  height: 50vh;
+  height: calc(50vh - 0em);
 }
+
 .chart-sm {
   width: 100%;
-  height: 25vh;
+  height: calc(25vh - 2em);
 }
 
 .limdia > line {
