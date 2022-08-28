@@ -261,7 +261,21 @@ textarea {
   }
 }
 
-.chart, .chart2 {
+.chart {
   width: 100%;
   height: 50vh;
+}
+.chart-sm {
+  width: 100%;
+  height: 25vh;
+}
+
+.limdia > line {
+  /* stroke: red; */
+  stroke-dasharray: 4;
+}
+
+.limsys > line {
+  /* stroke: red; */
+  stroke-dasharray: 4;
 }

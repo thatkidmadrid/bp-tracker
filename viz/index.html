@@ -12,13 +12,13 @@
   <meta property="og:url" content="">
   <meta property="og:image" content="">-->
 
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="apple-touch-icon" href="../icon.png">
   <!-- Place favicon.ico in the root directory -->
 
-  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="../css/normalize.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.css" />
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="../css/main.css">
 
   <meta name="theme-color" content="#fafafa">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
@@ -32,31 +32,56 @@
 <body>
 
   <!-- Add your site or application content here -->
-  <svg class="chart"></svg>
-  <svg class="chart2"></svg>
+  <svg id="chart-1" class="chart"></svg>
+  <svg id="chart-2" class="chart-sm"></svg>
+  <svg id="chart-3" class="chart-sm"></svg>
 
   <script>
-      // $.ajax({
-      //   url: "https://content-sheets.googleapis.com/v4/spreadsheets/1iCxom0fLF7Ot9xjAFQsW1rAmUqy_SWd-CeHDlyYuy-g/values/A1%3AE932?majorDimension=COLUMNS&valueRenderOption=FORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE",
-      // }).done(function(r) {
-      //   console.log(r);
-      // });
+
+  // Google Sheets setup
+
+  var sheetsAPIdomain = 'https://content-sheets.googleapis.com/v4/spreadsheets/';
+  var sheetID = '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY';
+  var sheetRange = 'A1:F1000';
+  var params = $.param({
+    valueRenderOption: 'FORMATTED_VALUE',
+    dateTimeRenderOption: 'SERIAL_NUMBER',
+    key: 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE',
+    majorDimension: 'COLUMNS'
+  });
+
+  requestURL = sheetsAPIdomain + sheetID + '/values/' + sheetRange + '?' + params;
 
       $.ajax({
-        url: "https://content-sheets.googleapis.com/v4/spreadsheets/1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY/values/A1%3AE932?valueRenderOption=FORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE",
+        url: requestURL,
       }).done(function(response) {
         console.log(response);
-        var sheetRows = response.values;
+        var sheetData = response.values;
+
+        console.log(sheetData);
+
+        var dataSet1 = [sheetData[0], sheetData[1], sheetData[2]];
+        var dataSet2 = [sheetData[0], sheetData[3]];
+        var dataSet3 = [sheetData[0], sheetData[4]];
 
         var chart = c3.generate({
-          bindto: d3.select('.chart'),
+          bindto: d3.select('#chart-1'),
           data: {
             x: 'Timestamp',
             xFormat: '%m/%d/%Y %H:%M:%S',
-            rows: sheetRows,
-            axes: {
-              'Heart Rate (bpm)': 'y2'
-            },
+            columns: dataSet1,
+            // axes: {
+            //   'Heart Rate (bpm)': 'y2'
+            // },
+            color: function(colour, d) {
+              if (d.id === 'Systolic Blood Pressure (mmHg)' && d.value > 120){
+                  return '#f00';
+              } else if (d.id === 'Diastolic Blood Pressure (mmHg)' && d.value > 80){
+                  return '#f00';
+              } else {
+                  return colour;
+              }
+            }
           },
           axis: {
             x: {
@@ -68,7 +93,7 @@
               }
             },
             y2: {
-              show: true
+              show: false
             }
           },
           subchart: {
@@ -77,22 +102,41 @@
               x:{
                 show:false
               }
-            }
+            },
+            onbrush: function (d) {
+              chart2.zoom(d);
+              chart3.zoom(d);
+            },
           },
           legend: {
-            hide: 'Heart Rate (bpm)'
+            // hide: 'Heart Rate (bpm)'
+          },
+          line: {
+            connectNull: false
+          },
+          grid: {
+              y: {
+                  lines: [
+                      {value: 80, text: 'normal limit Diastolic', class: 'limdia'},
+                      {value: 120, text: 'normal limit Systolic', class: 'limsys'},
+                  ]
+              }
           }
         });
 
         var chart2 = c3.generate({
-          bindto: d3.select('.chart2'),
+          bindto: d3.select('#chart-2'),
           data: {
             x: 'Timestamp',
             xFormat: '%m/%d/%Y %H:%M:%S',
-            rows: sheetRows,
+            columns: dataSet2,
             // axes: {
             //   'Heart Rate (bpm)': 'y2'
             // },
+            type: 'bar'
+          },
+          tooltip: {
+            show: true,
           },
           axis: {
             x: {
@@ -104,11 +148,11 @@
               }
             },
             y2: {
-              show: true
+              show: false
             }
           },
           subchart: {
-            show: true,
+            show: false,
             axis: {
               x:{
                 show:false
@@ -122,7 +166,51 @@
             ]
           }
         });
+        var chart3 = c3.generate({
+          bindto: d3.select('#chart-3'),
+          data: {
+            x: 'Timestamp',
+            xFormat: '%m/%d/%Y %H:%M:%S',
+            columns: dataSet3,
+            // axes: {
+            //   'Heart Rate (bpm)': 'y2'
+            // },
+            type: 'bar',
+            color: function (colour, d) {
+              if (d.value == '5') {
+                return '#63ff00';
+              } else if (d.value == '4') {
+                return '#d6ff00';
+              } else if (d.value == '3') {
+                return '#ffff00';
+              } else if (d.value == '2') {
+                return '#ffc100';
+              } else {
+                return '#ff0000';
+              }
+            }
+          },
+          axis: {
+            x: {
+              type: 'timeseries',
+              tick: {
+                format: '%Y-%m-%d %H:%M',
+                // rotate: -90
+              }
+            },
+            y: {
+              // show: false,
+              // tick:{
+              //   format: function(d){return null}
+              // },
+              max: 0.5
+
+            }
+          }
+        });
       });
+
+
 
       // function makeApiCall() {
       //   var params = {
@@ -138,14 +226,14 @@
       //     // TODO: Change code below to process the `response` object:
       //     console.log(response.result);
       //
-      //     var sheetRows = response.result.values;
+      //     var sheetData = response.result.values;
       //
       //     var chart = c3.generate({
       //       bindto: d3.select('.chart'),
       //       data: {
       //         x: 'Timestamp',
       //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetRows,
+      //         rows: sheetData,
       //         axes: {
       //           'Heart Rate (bpm)': 'y2'
       //         },
@@ -181,7 +269,7 @@
       //       data: {
       //         x: 'Timestamp',
       //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetRows,
+      //         rows: sheetData,
       //         // axes: {
       //         //   'Heart Rate (bpm)': 'y2'
       //         // },
@@ -251,9 +339,9 @@
 
 
 
-  <script src="js/vendor/modernizr-3.11.2.min.js"></script>
-  <script src="js/plugins.js"></script>
-  <script src="js/main.js"></script>
+  <script src="../js/vendor/modernizr-3.11.2.min.js"></script>
+  <script src="../js/plugins.js"></script>
+  <script src="../js/main.js"></script>
 
 </body>
 
