@@ -30,314 +30,322 @@
 </head>
 
 <body>
- <main>
-   <svg id="chart-1" class="chart"></svg>
-   <svg id="chart-2" class="chart-sm"></svg>
-   <svg id="chart-3" class="chart-sm"></svg>
- </main>
+
+  <main>
+    <nav>
+      <a href="../index.html">Summary</a>
+    </nav>
+    <svg id="chart-1" class="chart"></svg>
+    <svg id="chart-2" class="chart-sm"></svg>
+    <svg id="chart-3" class="chart-sm"></svg>
+  </main>
   <!-- Add your site or application content here -->
 
 
   <script>
+    // Google Sheets setup
 
-  // Google Sheets setup
+    var sheetsAPIdomain = 'https://content-sheets.googleapis.com/v4/spreadsheets/';
+    var sheetID = '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY';
+    var sheetRange = 'A1:F1000';
+    var params = $.param({
+      valueRenderOption: 'FORMATTED_VALUE',
+      dateTimeRenderOption: 'SERIAL_NUMBER',
+      key: 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE',
+      majorDimension: 'COLUMNS'
+    });
 
-  var sheetsAPIdomain = 'https://content-sheets.googleapis.com/v4/spreadsheets/';
-  var sheetID = '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY';
-  var sheetRange = 'A1:F1000';
-  var params = $.param({
-    valueRenderOption: 'FORMATTED_VALUE',
-    dateTimeRenderOption: 'SERIAL_NUMBER',
-    key: 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE',
-    majorDimension: 'COLUMNS'
-  });
+    requestURL = sheetsAPIdomain + sheetID + '/values/' + sheetRange + '?' + params;
 
-  requestURL = sheetsAPIdomain + sheetID + '/values/' + sheetRange + '?' + params;
+    $.ajax({
+      url: requestURL,
+    }).done(function(response) {
+      console.log(response);
+      var sheetData = response.values;
 
-      $.ajax({
-        url: requestURL,
-      }).done(function(response) {
-        console.log(response);
-        var sheetData = response.values;
+      console.log(sheetData);
 
-        console.log(sheetData);
+      var dataSet1 = [sheetData[0], sheetData[1], sheetData[2]];
+      var dataSet2 = [sheetData[0], sheetData[3]];
+      var dataSet3 = [sheetData[0], sheetData[4]];
 
-        var dataSet1 = [sheetData[0], sheetData[1], sheetData[2]];
-        var dataSet2 = [sheetData[0], sheetData[3]];
-        var dataSet3 = [sheetData[0], sheetData[4]];
-
-        var chart = c3.generate({
-          bindto: d3.select('#chart-1'),
-          data: {
-            x: 'Timestamp',
-            xFormat: '%m/%d/%Y %H:%M:%S',
-            columns: dataSet1,
-            // axes: {
-            //   'Heart Rate (bpm)': 'y2'
-            // },
-            color: function(colour, d) {
-              if (d.id === 'Systolic Blood Pressure (mmHg)' && d.value > 120){
-                  return '#f00';
-              } else if (d.id === 'Diastolic Blood Pressure (mmHg)' && d.value > 80){
-                  return '#f00';
-              } else {
-                  return colour;
-              }
+      var chart = c3.generate({
+        bindto: d3.select('#chart-1'),
+        data: {
+          x: 'Timestamp',
+          xFormat: '%m/%d/%Y %H:%M:%S',
+          columns: dataSet1,
+          // axes: {
+          //   'Heart Rate (bpm)': 'y2'
+          // },
+          color: function(colour, d) {
+            if (d.id === 'Systolic Blood Pressure (mmHg)' && d.value > 120) {
+              return '#f00';
+            } else if (d.id === 'Diastolic Blood Pressure (mmHg)' && d.value > 80) {
+              return '#f00';
+            } else {
+              return colour;
             }
-          },
-          axis: {
-            x: {
-
-              type: 'timeseries',
-              tick: {
-                format: '%Y-%m-%d %H:%M',
-                // rotate: -90
-              }
-            },
-            y2: {
-              show: false
-            }
-          },
-          subchart: {
-            show: true,
-            axis: {
-              x:{
-                show:false
-              }
-            },
-            onbrush: function (d) {
-              chart2.zoom(d);
-              chart3.zoom(d);
-            },
-          },
-          legend: {
-            // hide: 'Heart Rate (bpm)'
-          },
-          line: {
-            connectNull: false
-          },
-          grid: {
-              y: {
-                  lines: [
-                      {value: 80, text: 'normal limit Diastolic', class: 'limdia'},
-                      {value: 120, text: 'normal limit Systolic', class: 'limsys'},
-                  ]
-              }
           }
-        });
+        },
+        axis: {
+          x: {
 
-        var chart2 = c3.generate({
-          bindto: d3.select('#chart-2'),
-          data: {
-            x: 'Timestamp',
-            xFormat: '%m/%d/%Y %H:%M:%S',
-            columns: dataSet2,
-            // axes: {
-            //   'Heart Rate (bpm)': 'y2'
-            // },
-            type: 'bar'
+            type: 'timeseries',
+            tick: {
+              format: '%Y-%m-%d %H:%M',
+              // rotate: -90
+            }
           },
-          tooltip: {
-            show: true,
-          },
+          y2: {
+            show: false
+          }
+        },
+        subchart: {
+          show: true,
           axis: {
             x: {
-
-              type: 'timeseries',
-              tick: {
-                format: '%Y-%m-%d %H:%M',
-                // rotate: -90
-              }
-            },
-            y2: {
               show: false
             }
           },
-          subchart: {
-            show: false,
-            axis: {
-              x:{
-                show:false
-              }
-            }
+          onbrush: function(d) {
+            chart2.zoom(d);
+            chart3.zoom(d);
           },
-          legend: {
-            hide: [
-                "Systolic Blood Pressure (mmHg)",
-                "Diastolic Blood Pressure (mmHg)",
+        },
+        legend: {
+          // hide: 'Heart Rate (bpm)'
+        },
+        line: {
+          connectNull: false
+        },
+        grid: {
+          y: {
+            lines: [{
+                value: 80,
+                text: 'normal limit Diastolic',
+                class: 'limdia'
+              },
+              {
+                value: 120,
+                text: 'normal limit Systolic',
+                class: 'limsys'
+              },
             ]
           }
-        });
-        var chart3 = c3.generate({
-          bindto: d3.select('#chart-3'),
-          data: {
-            x: 'Timestamp',
-            xFormat: '%m/%d/%Y %H:%M:%S',
-            columns: dataSet3,
-            // axes: {
-            //   'Heart Rate (bpm)': 'y2'
-            // },
-            type: 'bar',
-            color: function (colour, d) {
-              if (d.value == '5') {
-                return '#63ff00';
-              } else if (d.value == '4') {
-                return '#d6ff00';
-              } else if (d.value == '3') {
-                return '#ffff00';
-              } else if (d.value == '2') {
-                return '#ffc100';
-              } else {
-                return '#ff0000';
-              }
-            }
-          },
-          axis: {
-            x: {
-              type: 'timeseries',
-              tick: {
-                format: '%Y-%m-%d %H:%M',
-                // rotate: -90
-              }
-            },
-            y: {
-              // show: false,
-              // tick:{
-              //   format: function(d){return null}
-              // },
-              max: 0.5
-
-            }
-          }
-        });
+        }
       });
 
+      var chart2 = c3.generate({
+        bindto: d3.select('#chart-2'),
+        data: {
+          x: 'Timestamp',
+          xFormat: '%m/%d/%Y %H:%M:%S',
+          columns: dataSet2,
+          // axes: {
+          //   'Heart Rate (bpm)': 'y2'
+          // },
+          type: 'bar'
+        },
+        tooltip: {
+          show: true,
+        },
+        axis: {
+          x: {
+
+            type: 'timeseries',
+            tick: {
+              format: '%Y-%m-%d %H:%M',
+              // rotate: -90
+            }
+          },
+          y2: {
+            show: false
+          }
+        },
+        subchart: {
+          show: false,
+          axis: {
+            x: {
+              show: false
+            }
+          }
+        },
+        legend: {
+          hide: [
+            "Systolic Blood Pressure (mmHg)",
+            "Diastolic Blood Pressure (mmHg)",
+          ]
+        }
+      });
+      var chart3 = c3.generate({
+        bindto: d3.select('#chart-3'),
+        data: {
+          x: 'Timestamp',
+          xFormat: '%m/%d/%Y %H:%M:%S',
+          columns: dataSet3,
+          // axes: {
+          //   'Heart Rate (bpm)': 'y2'
+          // },
+          type: 'bar',
+          color: function(colour, d) {
+            if (d.value == '5') {
+              return '#63ff00';
+            } else if (d.value == '4') {
+              return '#d6ff00';
+            } else if (d.value == '3') {
+              return '#ffff00';
+            } else if (d.value == '2') {
+              return '#ffc100';
+            } else {
+              return '#ff0000';
+            }
+          }
+        },
+        axis: {
+          x: {
+            type: 'timeseries',
+            tick: {
+              format: '%Y-%m-%d %H:%M',
+              // rotate: -90
+            }
+          },
+          y: {
+            // show: false,
+            // tick:{
+            //   format: function(d){return null}
+            // },
+            max: 0.5
+
+          }
+        }
+      });
+    });
 
 
-      // function makeApiCall() {
-      //   var params = {
-      //     // The ID of the spreadsheet to retrieve data from.
-      //     spreadsheetId: '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY',  // TODO: Update placeholder value.
-      //     range: "A1:E932",  // TODO: Update placeholder value.
-      //     valueRenderOption: 'FORMATTED_VALUE',  // TODO: Update placeholder value.
-      //     dateTimeRenderOption: 'SERIAL_NUMBER',  // TODO: Update placeholder value.
-      //   };
-      //
-      //   var request = gapi.client.sheets.spreadsheets.values.get(params);
-      //   request.then(function(response) {
-      //     // TODO: Change code below to process the `response` object:
-      //     console.log(response.result);
-      //
-      //     var sheetData = response.result.values;
-      //
-      //     var chart = c3.generate({
-      //       bindto: d3.select('.chart'),
-      //       data: {
-      //         x: 'Timestamp',
-      //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetData,
-      //         axes: {
-      //           'Heart Rate (bpm)': 'y2'
-      //         },
-      //       },
-      //       axis: {
-      //         x: {
-      //
-      //           type: 'timeseries',
-      //           tick: {
-      //             format: '%Y-%m-%d %H:%M',
-      //             // rotate: -90
-      //           }
-      //         },
-      //         y2: {
-      //           show: true
-      //         }
-      //       },
-      //       subchart: {
-      //         show: true,
-      //         axis: {
-      //           x:{
-      //             show:false
-      //           }
-      //         }
-      //       },
-      //       legend: {
-      //         hide: 'Heart Rate (bpm)'
-      //       }
-      //     });
-      //
-      //     var chart2 = c3.generate({
-      //       bindto: d3.select('.chart2'),
-      //       data: {
-      //         x: 'Timestamp',
-      //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetData,
-      //         // axes: {
-      //         //   'Heart Rate (bpm)': 'y2'
-      //         // },
-      //       },
-      //       axis: {
-      //         x: {
-      //
-      //           type: 'timeseries',
-      //           tick: {
-      //             format: '%Y-%m-%d %H:%M',
-      //             // rotate: -90
-      //           }
-      //         },
-      //         y2: {
-      //           show: true
-      //         }
-      //       },
-      //       subchart: {
-      //         show: true,
-      //         axis: {
-      //           x:{
-      //             show:false
-      //           }
-      //         }
-      //       },
-      //       legend: {
-      //         hide: [
-      //             "Systolic Blood Pressure (mmHg)",
-      //             "Diastolic Blood Pressure (mmHg)",
-      //         ]
-      //       }
-      //     });
-      //
-      //
-      //
-      //   }, function(reason) {
-      //     console.error('error: ' + reason.result.error.message);
-      //   });
-      // }
-      //
-      //
-      // function initClient() {
-      //   var API_KEY = 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE';  // TODO: Update placeholder with desired API key.
-      //
-      //   var CLIENT_ID = '917082055286-bh1n0i2v9h6ddjb0fepav06ldj7e90co.apps.googleusercontent.com';  // TODO: Update placeholder with desired client ID.
-      //
-      //   var SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-      //
-      //   gapi.client.init({
-      //     'apiKey': API_KEY,
-      //     'clientId': CLIENT_ID,
-      //     'scope': SCOPE,
-      //     'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-      //   }).then(function() {
-      //     makeApiCall();
-      //   });
-      // }
-      //
-      // function handleClientLoad() {
-      //   gapi.load('client:auth2', initClient);
-      // }
 
-      // handleClientLoad();
+    // function makeApiCall() {
+    //   var params = {
+    //     // The ID of the spreadsheet to retrieve data from.
+    //     spreadsheetId: '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY',  // TODO: Update placeholder value.
+    //     range: "A1:E932",  // TODO: Update placeholder value.
+    //     valueRenderOption: 'FORMATTED_VALUE',  // TODO: Update placeholder value.
+    //     dateTimeRenderOption: 'SERIAL_NUMBER',  // TODO: Update placeholder value.
+    //   };
+    //
+    //   var request = gapi.client.sheets.spreadsheets.values.get(params);
+    //   request.then(function(response) {
+    //     // TODO: Change code below to process the `response` object:
+    //     console.log(response.result);
+    //
+    //     var sheetData = response.result.values;
+    //
+    //     var chart = c3.generate({
+    //       bindto: d3.select('.chart'),
+    //       data: {
+    //         x: 'Timestamp',
+    //         xFormat: '%m/%d/%Y %H:%M:%S',
+    //         rows: sheetData,
+    //         axes: {
+    //           'Heart Rate (bpm)': 'y2'
+    //         },
+    //       },
+    //       axis: {
+    //         x: {
+    //
+    //           type: 'timeseries',
+    //           tick: {
+    //             format: '%Y-%m-%d %H:%M',
+    //             // rotate: -90
+    //           }
+    //         },
+    //         y2: {
+    //           show: true
+    //         }
+    //       },
+    //       subchart: {
+    //         show: true,
+    //         axis: {
+    //           x:{
+    //             show:false
+    //           }
+    //         }
+    //       },
+    //       legend: {
+    //         hide: 'Heart Rate (bpm)'
+    //       }
+    //     });
+    //
+    //     var chart2 = c3.generate({
+    //       bindto: d3.select('.chart2'),
+    //       data: {
+    //         x: 'Timestamp',
+    //         xFormat: '%m/%d/%Y %H:%M:%S',
+    //         rows: sheetData,
+    //         // axes: {
+    //         //   'Heart Rate (bpm)': 'y2'
+    //         // },
+    //       },
+    //       axis: {
+    //         x: {
+    //
+    //           type: 'timeseries',
+    //           tick: {
+    //             format: '%Y-%m-%d %H:%M',
+    //             // rotate: -90
+    //           }
+    //         },
+    //         y2: {
+    //           show: true
+    //         }
+    //       },
+    //       subchart: {
+    //         show: true,
+    //         axis: {
+    //           x:{
+    //             show:false
+    //           }
+    //         }
+    //       },
+    //       legend: {
+    //         hide: [
+    //             "Systolic Blood Pressure (mmHg)",
+    //             "Diastolic Blood Pressure (mmHg)",
+    //         ]
+    //       }
+    //     });
+    //
+    //
+    //
+    //   }, function(reason) {
+    //     console.error('error: ' + reason.result.error.message);
+    //   });
+    // }
+    //
+    //
+    // function initClient() {
+    //   var API_KEY = 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE';  // TODO: Update placeholder with desired API key.
+    //
+    //   var CLIENT_ID = '917082055286-bh1n0i2v9h6ddjb0fepav06ldj7e90co.apps.googleusercontent.com';  // TODO: Update placeholder with desired client ID.
+    //
+    //   var SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+    //
+    //   gapi.client.init({
+    //     'apiKey': API_KEY,
+    //     'clientId': CLIENT_ID,
+    //     'scope': SCOPE,
+    //     'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+    //   }).then(function() {
+    //     makeApiCall();
+    //   });
+    // }
+    //
+    // function handleClientLoad() {
+    //   gapi.load('client:auth2', initClient);
+    // }
 
-
-      </script>
+    // handleClientLoad();
+  </script>
 
 
 

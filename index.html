@@ -18,6 +18,7 @@
 
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="css/main.css">
 
   <meta name="theme-color" content="#fafafa">
@@ -26,228 +27,171 @@
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.js"></script>
-
+  <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js" charset="utf-8"></script>
+  <script src="https://kit.fontawesome.com/dac74a2b0e.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
+  <main>
+    <!-- Add your site or application content here -->
+    <h1>Blood Pressure Tracker</h1>
 
-  <!-- Add your site or application content here -->
-  <svg class="chart"></svg>
-  <svg class="chart2"></svg>
+    <nav>
+      <a href="./viz/index.html"><i class="fa-regular fa-chart-bar"></i> Visualizations</a>
+    </nav>
+    <div class="latest">
+
+      <div id="latest-sys"></div>
+      <div id="latest-dia"></div>
+      <div id="latest-hr"></div>
+      <div id="latest-mood"></div>
+      <div id="latest-note"></div>
+      <div id="latest-date"></div>
+    </div>
+    <table id="bpTable" class="table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Systolic Blood Pressure (mmHg)</th>
+          <th>Diastolic Blood Pressure (mmHg)</th>
+          <th>Heart Rate (bpm)</th>
+          <th>How are you feeling?</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+    </table>
+  </main>
+
 
   <script>
-      // $.ajax({
-      //   url: "https://content-sheets.googleapis.com/v4/spreadsheets/1iCxom0fLF7Ot9xjAFQsW1rAmUqy_SWd-CeHDlyYuy-g/values/A1%3AE932?majorDimension=COLUMNS&valueRenderOption=FORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE",
-      // }).done(function(r) {
-      //   console.log(r);
-      // });
+    $(document).ready(function() {
+      // Google Sheets setup
+
+      var sheetsAPIdomain = 'https://content-sheets.googleapis.com/v4/spreadsheets/';
+      var sheetID = '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY';
+      var sheetRange = 'A1:F1000';
+      var params = $.param({
+        // valueRenderOption: 'FORMATTED_VALUE',
+        dateTimeRenderOption: 'SERIAL_NUMBER',
+        key: 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE',
+        majorDimension: 'ROWS'
+      });
+
+      requestURL = sheetsAPIdomain + sheetID + '/values/' + sheetRange + '?' + params;
 
       $.ajax({
-        url: "https://content-sheets.googleapis.com/v4/spreadsheets/1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY/values/A1%3AE932?valueRenderOption=FORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE",
+        url: requestURL,
       }).done(function(response) {
         console.log(response);
         var sheetRows = response.values;
-
-        var chart = c3.generate({
-          bindto: d3.select('.chart'),
-          data: {
-            x: 'Timestamp',
-            xFormat: '%m/%d/%Y %H:%M:%S',
-            rows: sheetRows,
-            axes: {
-              'Heart Rate (bpm)': 'y2'
-            },
-          },
-          axis: {
-            x: {
-
-              type: 'timeseries',
-              tick: {
-                format: '%Y-%m-%d %H:%M',
-                // rotate: -90
-              }
-            },
-            y2: {
-              show: true
+        var cleanData = [];
+        sheetRows.forEach((item, i) => {
+          if (i > 0) {
+            // console.log(item.length)
+            if (item.length == 5) {
+              item.push("");
+            } else if (item.length == 4) {
+              item.push("", "");
+            } else if (item.length == 3) {
+              item.push("", "", "");
+            } else if (item.length == 2) {
+              item.push("", "", "", "");
+            } else if (item.length == 1) {
+              item.push("", "", "", "", "");
             }
-          },
-          subchart: {
-            show: true,
-            axis: {
-              x:{
-                show:false
-              }
-            }
-          },
-          legend: {
-            hide: 'Heart Rate (bpm)'
+
+            // eventDate = item[0];
+            // var monthName = moment(eventDate).format("MMMM").toUpperCase();
+            // var monthDate = moment(eventDate).format("DD");
+            // var time = moment(eventDate).format("HH:mm");
+            //
+            // console.log(monthName + ' ' + monthDate + ' ' + time);
+            cleanData.push(item);
+
           }
+
         });
 
-        var chart2 = c3.generate({
-          bindto: d3.select('.chart2'),
-          data: {
-            x: 'Timestamp',
-            xFormat: '%m/%d/%Y %H:%M:%S',
-            rows: sheetRows,
-            // axes: {
-            //   'Heart Rate (bpm)': 'y2'
-            // },
-          },
-          axis: {
-            x: {
+        // console.log(cleanData)
 
-              type: 'timeseries',
-              tick: {
-                format: '%Y-%m-%d %H:%M',
-                // rotate: -90
-              }
+
+        var table = $('#bpTable').DataTable({
+          data: cleanData,
+          columns: [{
+              "type": "date",
+              "orderable": false,
+              "render": function(data, type, row) {
+                var monthName = moment(data).format("MMMM").toUpperCase();
+                var monthDate = moment(data).format("DD");
+                var time = moment(data).format("HH:mm");
+                // var markup="";
+                // markup += "<div class='date-box'>";
+                // markup += "<span class='date-month'>"+monthName+"</span>";
+                // markup += "<span class='date-day'>"+monthDate+"</span>";
+                // markup += "<span class='date-time'>"+time+"</span>";
+                // markup += "</div>";
+                // return markup;
+                return monthName + ' ' + monthDate + ' ' + time;
+                // return data + ' (' + row[3] + ')';
+              },
+              "name": "date"
             },
-            y2: {
-              show: true
-            }
-          },
-          subchart: {
-            show: true,
-            axis: {
-              x:{
-                show:false
-              }
-            }
-          },
-          legend: {
-            hide: [
-                "Systolic Blood Pressure (mmHg)",
-                "Diastolic Blood Pressure (mmHg)",
-            ]
-          }
+            {
+              "type": "num",
+              "orderable": false
+            },
+            {
+              "type": "num",
+              "orderable": false
+            },
+            {
+              "type": "num",
+              "orderable": false
+            },
+            {
+              "type": "num",
+              "orderable": false,
+              "render": function(data, type, row) {
+                if (data == 1) {
+                  return '😫'
+                } else if (data == 2) {
+                  return '😕'
+                } else if (data == 3) {
+                  return '🙂'
+                } else if (data == 4) {
+                  return '😀'
+                } else if (data == 5) {
+                  return '😁'
+                } else {
+                  return '';
+                }
+              },
+              "name": "mood"
+            },
+            {
+              "type": "string"
+            },
+          ],
+          order: [
+            [0, 'desc']
+          ],
+          dom: 'lrtip'
         });
+
+        var d = table.row(':eq(0)').data();
+        $('#latest-date').html('<span>' + d[0] + '</span>');
+        $('#latest-sys').html('<span class="digital">' + d[1] + '</span><span class="unit">mmHg</span>');
+        $('#latest-dia').html('<span class="digital">' + d[2] + '</span><span class="unit">mmHg</span>');
+        $('#latest-hr').html('<span>' + d[3] + '</span><span class="unit">bpm</span>');
+        $('#latest-mood').html('<span>' + d[4] + '</span>');
+        $('#latest-note').html('<span>' + d[5] + '</span>');
+        console.log(d);
+
       });
 
-      // function makeApiCall() {
-      //   var params = {
-      //     // The ID of the spreadsheet to retrieve data from.
-      //     spreadsheetId: '1G5kHapZPUTEb-KdprovtyxvJhSP5sJiz3--bRr-yQsY',  // TODO: Update placeholder value.
-      //     range: "A1:E932",  // TODO: Update placeholder value.
-      //     valueRenderOption: 'FORMATTED_VALUE',  // TODO: Update placeholder value.
-      //     dateTimeRenderOption: 'SERIAL_NUMBER',  // TODO: Update placeholder value.
-      //   };
-      //
-      //   var request = gapi.client.sheets.spreadsheets.values.get(params);
-      //   request.then(function(response) {
-      //     // TODO: Change code below to process the `response` object:
-      //     console.log(response.result);
-      //
-      //     var sheetRows = response.result.values;
-      //
-      //     var chart = c3.generate({
-      //       bindto: d3.select('.chart'),
-      //       data: {
-      //         x: 'Timestamp',
-      //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetRows,
-      //         axes: {
-      //           'Heart Rate (bpm)': 'y2'
-      //         },
-      //       },
-      //       axis: {
-      //         x: {
-      //
-      //           type: 'timeseries',
-      //           tick: {
-      //             format: '%Y-%m-%d %H:%M',
-      //             // rotate: -90
-      //           }
-      //         },
-      //         y2: {
-      //           show: true
-      //         }
-      //       },
-      //       subchart: {
-      //         show: true,
-      //         axis: {
-      //           x:{
-      //             show:false
-      //           }
-      //         }
-      //       },
-      //       legend: {
-      //         hide: 'Heart Rate (bpm)'
-      //       }
-      //     });
-      //
-      //     var chart2 = c3.generate({
-      //       bindto: d3.select('.chart2'),
-      //       data: {
-      //         x: 'Timestamp',
-      //         xFormat: '%m/%d/%Y %H:%M:%S',
-      //         rows: sheetRows,
-      //         // axes: {
-      //         //   'Heart Rate (bpm)': 'y2'
-      //         // },
-      //       },
-      //       axis: {
-      //         x: {
-      //
-      //           type: 'timeseries',
-      //           tick: {
-      //             format: '%Y-%m-%d %H:%M',
-      //             // rotate: -90
-      //           }
-      //         },
-      //         y2: {
-      //           show: true
-      //         }
-      //       },
-      //       subchart: {
-      //         show: true,
-      //         axis: {
-      //           x:{
-      //             show:false
-      //           }
-      //         }
-      //       },
-      //       legend: {
-      //         hide: [
-      //             "Systolic Blood Pressure (mmHg)",
-      //             "Diastolic Blood Pressure (mmHg)",
-      //         ]
-      //       }
-      //     });
-      //
-      //
-      //
-      //   }, function(reason) {
-      //     console.error('error: ' + reason.result.error.message);
-      //   });
-      // }
-      //
-      //
-      // function initClient() {
-      //   var API_KEY = 'AIzaSyAarlySPKJgCGqmRqPvCBi547QvegAMrTE';  // TODO: Update placeholder with desired API key.
-      //
-      //   var CLIENT_ID = '917082055286-bh1n0i2v9h6ddjb0fepav06ldj7e90co.apps.googleusercontent.com';  // TODO: Update placeholder with desired client ID.
-      //
-      //   var SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-      //
-      //   gapi.client.init({
-      //     'apiKey': API_KEY,
-      //     'clientId': CLIENT_ID,
-      //     'scope': SCOPE,
-      //     'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-      //   }).then(function() {
-      //     makeApiCall();
-      //   });
-      // }
-      //
-      // function handleClientLoad() {
-      //   gapi.load('client:auth2', initClient);
-      // }
-
-      // handleClientLoad();
-
-
-      </script>
+    });
+  </script>
 
 
 
