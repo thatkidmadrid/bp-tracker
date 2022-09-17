@@ -286,6 +286,9 @@ main {
   stroke-dasharray: 4;
 }
 
+#bpTable {
+
+}
 
 table.dataTable tbody tr.even {
     background-color: #f9f9f9;
@@ -295,33 +298,83 @@ table.dataTable tbody tr.even {
   display: inline-block;
   background-color: #f9f9f9;
   padding: 1.5em;
-  margin: 1em 0;
-  border-radius: 1em;
+  margin: 1em 0 2em;
+  border-radius: 2em;
+  text-align: right;
+  min-width: 20rem;
+  border: 1px solid #eee;
 }
 
 #latest-date {
   /* text-align: left; */
-  margin-top: .5em;
+  /* margin-top: .5em; */
+  font-weight: bold;
+  font-size: 0.85em;
 }
 
-#latest-sys, #latest-dia {
+#latest-sys, #latest-dia, #latest-hr, #latest-mood {
   font-size: 2em;
 }
 
-#latest-hr {
-  font-size: 1.5em;
-  margin-top: .5em;
+#latest-note {
+  font-style: italic;
+  text-align: center;
 }
 
-.digital {
-    /* font-family: monospace; */
+#latest-mood {
+  text-align: center;
 }
 
 .unit {
-  font-size: 0.8em;
+    font-weight: normal;
+}
+
+.value {
+    /* font-family: monospace; */
+    font-weight: bold;
 }
 
 td, table.dataTable thead th {
   text-align: center;
+}
 
+.tableHeading .unit{
+  display:block;
+}
+
+.stats {
+  margin: 1em 0;
+}
+
+.stats dt {
+  display: flex;
+  flex-direction: column;
+  float:left;
+  text-align: left;
+  margin-top: 0.25em;
+}
+
+.stats dd {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 0;
+  line-height: 1.75em;
+}
+
+.sysHigh {
+  color: red;
+}
+
+#indicator {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: .75em;
+  background-color: #fff;
+  float: left;
+}
+
+.dateCol {
+  font-family: 'Lucida Grande', monospace;
+  font-size: 0.75em;
+  vertical-align: middle;
 }

@@ -17,8 +17,11 @@
   <!-- Place favicon.ico in the root directory -->
 
   <link rel="stylesheet" href="./css/normalize.css">
+  <!-- CSS only -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lity/2.4.1/lity.css" integrity="sha512-NDcw4w5Uk5nra1mdgmYYbghnm2azNRbxeI63fd3Zw72aYzFYdBGgODILLl1tHZezbC8Kep/Ep/civILr5nd1Qw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="./css/main.css">
 
   <meta name="theme-color" content="#fafafa">
@@ -30,6 +33,7 @@
   <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js" charset="utf-8"></script>
   <script src="https://kit.fontawesome.com/dac74a2b0e.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lity/2.4.1/lity.min.js" integrity="sha512-UU0D/t+4/SgJpOeBYkY+lG16MaNF8aqmermRIz8dlmQhOlBnw6iQrnt4Ijty513WB3w+q4JO75IX03lDj6qQNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
@@ -38,26 +42,45 @@
     <h1>Blood Pressure Tracker</h1>
 
     <nav>
-      <a href="./viz/"><i class="fa-regular fa-chart-bar"></i> Visualizations</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdwe6TkZs0ZAt59tbD1Zr6SsEblUFTngA0w7KTVCh6K9jENSA/viewform" class="btn btn-dark"><i class="fa-regular fa-edit"></i> Record Blood Pressure</a>
+      <a href="./viz" class="btn btn-dark"><i class="fa-regular fa-chart-bar"></i> Visualizations</a>
     </nav>
-    <div class="latest">
 
-      <div id="latest-sys"></div>
-      <div id="latest-dia"></div>
-      <div id="latest-hr"></div>
-      <div id="latest-mood"></div>
+    <div class="latest">
+      <a href="#inline" id="indicator" class="" data-lity>
+
+      </a>
+
+      <div id="latest-date">-</div>
+
+      <dl class="stats">
+        <dt>SYS <span class="unit">mmHg</span></dt>
+        <dd class="value" id="latest-sys">--</dd>
+
+        <dt>DIA <span class="unit">mmHg</span></dt>
+        <dd class="value" id="latest-dia">--</dd>
+
+        <dt>PULSE <span class="unit">BPM</span></dt>
+        <dd class="value" id="latest-hr">--</dd>
+      </dl>
       <div id="latest-note"></div>
-      <div id="latest-date"></div>
+      <div id="latest-mood"></div>
+
     </div>
+
+    <div id="inline" class="lity-hide">
+      <img src="bp-info.webp" alt="table of blood pressure readings">
+    </div>
+
     <table id="bpTable" class="table">
       <thead>
         <tr>
-          <th>Timestamp</th>
-          <th>Systolic Blood Pressure (mmHg)</th>
-          <th>Diastolic Blood Pressure (mmHg)</th>
-          <th>Heart Rate (bpm)</th>
-          <th>How are you feeling?</th>
-          <th>Notes</th>
+          <th class="tableHeading">Timestamp</th>
+          <th class="tableHeading">SYS <span class="unit">mmHg</span></th>
+          <th class="tableHeading">DIA <span class="unit">mmHg</span></th>
+          <th class="tableHeading">PULSE <span class="unit">BPM</span></th>
+          <th class="tableHeading">How are you feeling?</th>
+          <th class="tableHeading">Notes</th>
         </tr>
       </thead>
     </table>
@@ -65,6 +88,70 @@
 
 
   <script>
+  function getMood(val){
+    if (val == 1) {
+      return '😫'
+    } else if (val == 2) {
+      return '😕'
+    } else if (val == 3) {
+      return '🙂'
+    } else if (val == 4) {
+      return '😀'
+    } else if (val == 5) {
+      return '😁'
+    } else {
+      return '';
+    }
+  }
+
+  function getSysColour(val){
+    if (val > 120) {
+      return 'sysHigh'
+    } else {
+      return 'sysNormal';
+    }
+  }
+
+  function getDiaColour(val){
+    if (val > 80) {
+      return 'sysHigh'
+    } else {
+      return 'sysNormal';
+    }
+  }
+
+  function getReading(sys,dia){
+    if (sys>180 || dia>120) {
+      return 'Hypertensive crisis (seek medical attention)'
+    } else if (sys>140 || dia>90) {
+      return 'High blood pressure (stage 2 hypertension)'
+    } else if (sys>130 || dia>=80) {
+      return 'High blood pressure (stage 1 hypertension)'
+    } else if (sys>=120 && dia<80) {
+      return 'Elevated'
+    } else if (sys<120 && dia<80) {
+      return 'Normal'
+    } else {
+      return 'No category'
+    }
+  }
+
+  function getReadingColour(sys,dia){
+    if (sys>180 || dia>120) {
+      return '#ac3f3f'
+    } else if (sys>140 || dia>90) {
+      return '#ec5c5b'
+    } else if (sys>130 || dia>=80) {
+      return '#f37c4b'
+    } else if (sys>=120 && dia<80) {
+      return '#f39c3e'
+    } else if (sys<120 && dia<80) {
+      return '#64cab1'
+    } else {
+      return '#eee'
+    }
+  }
+
     $(document).ready(function() {
       // Google Sheets setup
 
@@ -118,11 +205,19 @@
 
         var table = $('#bpTable').DataTable({
           data: cleanData,
+          responsive: {
+              breakpoints: [
+                  { name: 'desktop', width: Infinity },
+                  { name: 'tablet',  width: 1024 },
+                  { name: 'fablet',  width: 768 },
+                  { name: 'phone',   width: 480 }
+              ]
+          },
           columns: [{
               "type": "date",
               "orderable": false,
               "render": function(data, type, row) {
-                var monthName = moment(data).format("MMMM").toUpperCase();
+                var monthName = moment(data).format("MMM").toUpperCase();
                 var monthDate = moment(data).format("DD");
                 var time = moment(data).format("HH:mm");
                 // var markup="";
@@ -135,37 +230,29 @@
                 return monthName + ' ' + monthDate + ' ' + time;
                 // return data + ' (' + row[3] + ')';
               },
-              "name": "date"
+              "name": "date",
+              "className": "dateCol"
             },
             {
               "type": "num",
-              "orderable": false
+              "orderable": false,
+              "className": "value"
             },
             {
               "type": "num",
-              "orderable": false
+              "orderable": false,
+              "className": "value"
             },
             {
               "type": "num",
-              "orderable": false
+              "orderable": false,
+              "className": ""
             },
             {
               "type": "num",
               "orderable": false,
               "render": function(data, type, row) {
-                if (data == 1) {
-                  return '😫'
-                } else if (data == 2) {
-                  return '😕'
-                } else if (data == 3) {
-                  return '🙂'
-                } else if (data == 4) {
-                  return '😀'
-                } else if (data == 5) {
-                  return '😁'
-                } else {
-                  return '';
-                }
+                return getMood(data);
               },
               "name": "mood"
             },
@@ -176,18 +263,48 @@
           order: [
             [0, 'desc']
           ],
-          dom: 'lrtip'
+          dom: 'lrtip',
+          autoWidth: false,
+          rowCallback: function(row, data, index){
+
+            if(data[1]> 120){
+                $(row).find('td:eq(1)').css('color', '#f39c3e');
+            }
+
+            if (data[1]>180) {
+              $(row).find('td:eq(1)').css('color', '#ac3f3f')
+            } else if (data[1]>140) {
+              $(row).find('td:eq(1)').css('color', '#ec5c5b')
+            } else if (data[1]>130) {
+              $(row).find('td:eq(1)').css('color', '#f37c4b')
+            } else if (data[1]>=120) {
+              $(row).find('td:eq(1)').css('color', '#f39c3e')
+            } else if (data[1]<120) {
+              $(row).find('td:eq(1)').css('color', '#64cab1')
+            }
+
+            if (data[2]>120) {
+              $(row).find('td:eq(2)').css('color', '#ac3f3f');
+            } else if (data[2]>90) {
+              $(row).find('td:eq(2)').css('color', '#ec5c5b');
+            } else if (data[2]>=80) {
+              $(row).find('td:eq(2)').css('color', '#f37c4b');
+            } else if (data[2]<80) {
+              $(row).find('td:eq(2)').css('color', '#64cab1');
+            }
+
+          }
         });
 
         var d = table.row(':eq(0)').data();
-        $('#latest-date').html('<span>' + d[0] + '</span>');
-        $('#latest-sys').html('<span class="digital">' + d[1] + '</span><span class="unit">mmHg</span>');
-        $('#latest-dia').html('<span class="digital">' + d[2] + '</span><span class="unit">mmHg</span>');
-        $('#latest-hr').html('<span>' + d[3] + '</span><span class="unit">bpm</span>');
-        $('#latest-mood').html('<span>' + d[4] + '</span>');
+        $('#latest-date').html('<time class="date" datetime="'+ moment(d[0]).format("Y-MM-DD H:m:s") +'">' + " " + moment(d[0]).format("DD MMM Y, HH:mmA ") + '</time>');
+        $('#latest-sys').html(d[1]);
+        $('#latest-dia').html(d[2]);
+        $('#latest-hr').html(d[3]);
+        $('#latest-mood').html('<span>' + getMood(d[4]) + '</span>');
         $('#latest-note').html('<span>' + d[5] + '</span>');
         console.log(d);
-
+        $('#indicator').css("background-color",getReadingColour(d[1],d[2]));
       });
 
     });
