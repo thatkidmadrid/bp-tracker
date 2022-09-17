@@ -152,6 +152,22 @@
     }
   }
 
+  function getReadingClass(sys,dia){
+    if (sys>180 || dia>120) {
+      return 'status status-4'
+    } else if (sys>140 || dia>90) {
+      return 'status status-3'
+    } else if (sys>130 || dia>=80) {
+      return 'status status-2'
+    } else if (sys>=120 && dia<80) {
+      return 'status status-1'
+    } else if (sys<120 && dia<80) {
+      return 'status status-0'
+    } else {
+      return 'status'
+    }
+  }
+
     $(document).ready(function() {
       // Google Sheets setup
 
@@ -258,7 +274,7 @@
             },
             {
               "type": "string"
-            },
+            }
           ],
           order: [
             [0, 'desc']
@@ -280,7 +296,7 @@
             } else if (data[1]>=120) {
               $(row).find('td:eq(1)').css('color', '#f39c3e')
             } else if (data[1]<120) {
-              $(row).find('td:eq(1)').css('color', '#64cab1')
+              // $(row).find('td:eq(1)').css('color', '#64cab1')
             }
 
             if (data[2]>120) {
@@ -290,8 +306,11 @@
             } else if (data[2]>=80) {
               $(row).find('td:eq(2)').css('color', '#f37c4b');
             } else if (data[2]<80) {
-              $(row).find('td:eq(2)').css('color', '#64cab1');
+              // $(row).find('td:eq(2)').css('color', '#64cab1');
             }
+
+            $(row).find('td:eq(0)').addClass(getReadingClass(data[1],data[2]))
+
 
           }
         });

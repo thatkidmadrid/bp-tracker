@@ -373,8 +373,43 @@ td, table.dataTable thead th {
   float: left;
 }
 
-.dateCol {
+td.dateCol {
   font-family: 'Lucida Grande', monospace;
   font-size: 0.75em;
   vertical-align: middle;
+}
+
+.status{
+  position: relative;
+}
+
+.status:after {
+  content: '';
+  display: block;
+  height: 3em;
+  width: 0.25em;
+  background-color: #eee;
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+}
+
+.status-0:after {
+  background-color: #64cab1;
+}
+
+.status-1:after {
+  background-color: #f39c3e;
+}
+
+.status-2:after {
+  background-color: #f37c4b;
+}
+
+.status-3:after {
+  background-color: #ec5c5b;
+}
+
+.status-4:after {
+  background-color: #ac3f3f;
 }
