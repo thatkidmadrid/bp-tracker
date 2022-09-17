@@ -413,3 +413,7 @@ td.dateCol {
 .status-4:after {
   background-color: #ac3f3f;
 }
+
+nav {
+  margin-top: 1em;
+}
