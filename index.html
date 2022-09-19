@@ -320,7 +320,10 @@
         $('#latest-sys').html(d[1]);
         $('#latest-dia').html(d[2]);
         $('#latest-hr').html(d[3]);
-        $('#latest-mood').html('<span>' + getMood(d[4]) + '</span>');
+        if (d[4]) {
+          $('#latest-mood').html('<img class="mood-img" src="./mood-sprites/bp-mood-0'+d[4]+'.png" alt="mood:'+d[4]+'">');
+        }
+
         $('#latest-note').html('<span>' + d[5] + '</span>');
         console.log(d);
         $('#indicator').css("background-color",getReadingColour(d[1],d[2]));
