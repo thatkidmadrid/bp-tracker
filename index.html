@@ -71,7 +71,9 @@
     <div id="inline" class="lity-hide">
       <img src="bp-info.png" alt="table of blood pressure readings" style="max-width:100%">
     </div>
-
+    <div id="mood-scale" class="lity-hide">
+      <img src="./mood-sprites/mood-scale.png" alt="mood scale" style="max-width:100%">
+    </div>
     <table id="bpTable" class="table">
       <thead>
         <tr>
@@ -321,7 +323,7 @@
         $('#latest-dia').html(d[2]);
         $('#latest-hr').html(d[3]);
         if (d[4]) {
-          $('#latest-mood').html('<img class="mood-img" src="./mood-sprites/bp-mood-0'+d[4]+'.png" alt="mood:'+d[4]+'">');
+          $('#latest-mood').html('<a href="#mood-scale" id="mood" class="" data-lity><img class="mood-img" src="./mood-sprites/bp-mood-0'+d[4]+'.png" alt="mood:'+d[4]+'"></a>');
         }
 
         $('#latest-note').html('<span>' + d[5] + '</span>');
