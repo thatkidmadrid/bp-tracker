@@ -17,7 +17,9 @@
   <!-- Place favicon.ico in the root directory -->
 
   <link rel="stylesheet" href="../css/normalize.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lity/2.4.1/lity.css" integrity="sha512-NDcw4w5Uk5nra1mdgmYYbghnm2azNRbxeI63fd3Zw72aYzFYdBGgODILLl1tHZezbC8Kep/Ep/civILr5nd1Qw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="../css/main.css">
 
   <meta name="theme-color" content="#fafafa">
@@ -26,15 +28,44 @@
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.20/c3.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js" charset="utf-8"></script>
+  <script src="https://kit.fontawesome.com/dac74a2b0e.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lity/2.4.1/lity.min.js" integrity="sha512-UU0D/t+4/SgJpOeBYkY+lG16MaNF8aqmermRIz8dlmQhOlBnw6iQrnt4Ijty513WB3w+q4JO75IX03lDj6qQNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
 
   <main>
+    <h1>❤️ Blood Pressure Visualizations</h1>
+
     <nav>
-      <a href="../">Summary</a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdwe6TkZs0ZAt59tbD1Zr6SsEblUFTngA0w7KTVCh6K9jENSA/viewform" class="btn btn-dark"><i class="fa-regular fa-edit"></i> Record Blood Pressure</a>
+      <!-- <a href="./viz" class="btn btn-dark"><i class="fa-regular fa-chart-bar"></i> Visualizations</a> -->
+      <a href="../" class="btn btn-dark"><i class="fa-solid fa-house"></i> Home</a>
     </nav>
+
+    <div class="latest">
+      <a href="#inline" id="indicator" class="" data-lity>
+
+      </a>
+
+      <div id="latest-date">-</div>
+
+      <dl class="stats">
+        <dt>SYS <span class="unit">mmHg</span></dt>
+        <dd class="value" id="latest-sys">--</dd>
+
+        <dt>DIA <span class="unit">mmHg</span></dt>
+        <dd class="value" id="latest-dia">--</dd>
+
+        <dt>PULSE <span class="unit">BPM</span></dt>
+        <dd class="value" id="latest-hr">--</dd>
+      </dl>
+      <div id="latest-note"></div>
+      <div id="latest-mood" style="height:128px"><a href="#mood-scale" id="mood" class="" data-lity><img class="mood-img" src="../mood-sprites/bp-mood-03.png" alt="mood:unknown"></a><span>?</span></div>
+
+    </div>
+
     <svg id="chart-1" class="chart"></svg>
     <svg id="chart-2" class="chart-sm"></svg>
     <svg id="chart-3" class="chart-sm"></svg>
@@ -57,6 +88,53 @@
 
     requestURL = sheetsAPIdomain + sheetID + '/values/' + sheetRange + '?' + params;
 
+    function getReadingColour(sys,dia){
+      if (sys>180 || dia>120) {
+        return '#ac3f3f'
+      } else if (sys>140 || dia>90) {
+        return '#ec5c5b'
+      } else if (sys>130 || dia>=80) {
+        return '#f37c4b'
+      } else if (sys>=120 && dia<80) {
+        return '#f39c3e'
+      } else if (sys<120 && dia<80) {
+        return '#64cab1'
+      } else {
+        return '#eee'
+      }
+    }
+    function addLabelToTicks() {
+        // working only with old versions (!), D3js v3.5 and  C3js v0.4.
+
+        var mainChartTicks = document.querySelectorAll(".c3-axis-x.c3-axis > g");
+        var visibleChartTicks = [];
+        for (var i = 0; i < mainChartTicks.length; i++) {
+            var line = mainChartTicks[i].querySelectorAll("line")[0];
+            if (line.getAttribute("y2")==0 && line.getAttribute("x1")==0 && line.getAttribute("x2")==0)
+            	continue;
+            visibleChartTicks.push(mainChartTicks[i]);
+        }
+        var mainTickCount = visibleChartTicks.length;
+        if (mainTickCount >60)
+            return;
+        for (var i = 0; i < mainTickCount; i++)
+            visibleChartTicks[i].querySelectorAll("text")[0].style.display = "block";
+    }
+
+    function max_date(all_dates) {
+      var max_dt = all_dates[0],
+      max_dtObj = new Date(all_dates[0]);
+      all_dates.forEach(function(dt, index)
+      {
+        if ( new Date( dt ) > max_dtObj)
+        {
+          max_dt = dt;
+          max_dtObj = new Date(dt);
+        }
+      });
+      return max_dt;
+    }
+
     $.ajax({
       url: requestURL,
     }).done(function(response) {
@@ -69,15 +147,22 @@
       var dataSet2 = [sheetData[0], sheetData[3]];
       var dataSet3 = [sheetData[0], sheetData[4]];
 
+      var test1 = sheetData[0].slice(1);
+      console.log(test1)
+
+      var latestDate = new Date(max_date(test1))
+
+      console.log([Date(latestDate.setMonth(latestDate.getMonth() - 6)),Date(latestDate)])
+
       var chart = c3.generate({
         bindto: d3.select('#chart-1'),
+        interaction: {
+          enabled: true
+        },
         data: {
           x: 'Timestamp',
           xFormat: '%m/%d/%Y %H:%M:%S',
           columns: dataSet1,
-          // axes: {
-          //   'Heart Rate (bpm)': 'y2'
-          // },
           color: function(colour, d) {
             if (d.id === 'Systolic Blood Pressure (mmHg)' && d.value > 120) {
               return '#f00';
@@ -86,6 +171,38 @@
             } else {
               return colour;
             }
+          },
+          tooltip: {
+              format: {
+                  title: function (d) { return 'Data ' + d; },
+                  value: function (value, ratio, id) {
+                      var format = id;
+                      return value;
+                  }
+          //            value: d3.format(',') // apply this format to both y and y2
+              }
+          },
+          onmouseover: function (d) {
+            // console.log(d);
+            //console.log(moment(d.x).format("M/D/YYYY HH:mm:ss"))
+            //console.log(dataSet1[0].indexOf(moment(d.x).format("M/D/YYYY H:mm:ss")))
+            idx = dataSet1[0].indexOf(moment(d.x).format("M/D/YYYY H:mm:ss"));
+            $('#latest-date').html('<time class="date" datetime="'+ moment(dataSet1[0][idx]).format("Y-MM-DD H:m:s") +'">' + " " + moment(dataSet1[0][idx]).format("DD MMM Y, HH:mmA ") + '</time>');
+            $('#latest-sys').html(dataSet1[1][idx]);
+            $('#latest-dia').html(dataSet1[2][idx]);
+            $('#latest-hr').html(dataSet2[1][idx]);
+            var mood = dataSet3[1][idx];
+            if (mood) {
+              $('#latest-mood').html('<a href="#mood-scale" id="mood" class="" data-lity><img class="mood-img" src="../mood-sprites/bp-mood-0'+mood+'.png" alt="mood:'+d[4]+'"></a>');
+            } else {
+              $('#latest-mood').html('<a href="#mood-scale" id="mood" class="" data-lity><img class="mood-img" src="../mood-sprites/bp-mood-03.png" alt="mood:'+d[4]+'"></a><span>?</span>');
+            }
+            // if (d[5]) {
+            //     $('#latest-note').html('<p class="from-them">' + d[5] + '</p>');
+            // }
+
+            // console.log(d);
+            $('#indicator').css("background-color",getReadingColour(dataSet1[1][idx],dataSet1[2][idx]));
           }
         },
         axis: {
@@ -93,9 +210,13 @@
 
             type: 'timeseries',
             tick: {
-              format: '%Y-%m-%d %H:%M',
+              format: '%y-%m-%d %H:%M',
+              multiline: true,
+              mulitlineMax: 2,
+              rotate: 60
               // rotate: -90
-            }
+            },
+            extent: [Date(latestDate.setMonth(latestDate.getMonth() - 6)),Date(latestDate)]
           },
           y2: {
             show: false
@@ -109,9 +230,13 @@
             }
           },
           onbrush: function(d) {
-            chart2.zoom(d);
-            chart3.zoom(d);
+            addLabelToTicks()
+            // chart2.zoom(d);
+            // chart3.zoom(d);
           },
+        },
+        zoom: {
+          rescale: true
         },
         legend: {
           // hide: 'Heart Rate (bpm)'
@@ -136,90 +261,122 @@
         }
       });
 
-      var chart2 = c3.generate({
-        bindto: d3.select('#chart-2'),
-        data: {
-          x: 'Timestamp',
-          xFormat: '%m/%d/%Y %H:%M:%S',
-          columns: dataSet2,
-          // axes: {
-          //   'Heart Rate (bpm)': 'y2'
-          // },
-          type: 'bar'
-        },
-        tooltip: {
-          show: true,
-        },
-        axis: {
-          x: {
-
-            type: 'timeseries',
-            tick: {
-              format: '%Y-%m-%d %H:%M',
-              // rotate: -90
-            }
-          },
-          y2: {
-            show: false
-          }
-        },
-        subchart: {
-          show: false,
-          axis: {
-            x: {
-              show: false
-            }
-          }
-        },
-        legend: {
-          hide: [
-            "Systolic Blood Pressure (mmHg)",
-            "Diastolic Blood Pressure (mmHg)",
-          ]
-        }
-      });
-      var chart3 = c3.generate({
-        bindto: d3.select('#chart-3'),
-        data: {
-          x: 'Timestamp',
-          xFormat: '%m/%d/%Y %H:%M:%S',
-          columns: dataSet3,
-          // axes: {
-          //   'Heart Rate (bpm)': 'y2'
-          // },
-          type: 'bar',
-          color: function(colour, d) {
-            if (d.value == '5') {
-              return '#63ff00';
-            } else if (d.value == '4') {
-              return '#d6ff00';
-            } else if (d.value == '3') {
-              return '#ffff00';
-            } else if (d.value == '2') {
-              return '#ffc100';
-            } else {
-              return '#ff0000';
-            }
-          }
-        },
-        axis: {
-          x: {
-            type: 'timeseries',
-            tick: {
-              format: '%Y-%m-%d %H:%M',
-              // rotate: -90
-            }
-          },
-          y: {
-            // show: false,
-            // tick:{
-            //   format: function(d){return null}
-            // },
-            max: 0.5
-
-          }
-        }
-      });
+      // var chart2 = c3.generate({
+      //   bindto: d3.select('#chart-2'),
+      //   interaction: {
+      //     enabled: true
+      //   },
+      //   data: {
+      //     x: 'Timestamp',
+      //     xFormat: '%m/%d/%Y %H:%M:%S',
+      //     columns: dataSet2,
+      //     // axes: {
+      //     //   'Heart Rate (bpm)': 'y2'
+      //     // },
+      //     type: 'bar',
+      //     tooltip: {
+      //         format: {
+      //             title: function (d) { return 'Data ' + d; },
+      //             value: function (value, ratio, id) {
+      //                 var format = id;
+      //                 return value;
+      //             }
+      //     //            value: d3.format(',') // apply this format to both y and y2
+      //         }
+      //     },
+      //     onmouseover: function (d) {
+      //       console.log(d)
+      //     }
+      //   },
+      //   tooltip: {
+      //     show: true,
+      //   },
+      //   axis: {
+      //     x: {
+      //
+      //       type: 'timeseries',
+      //       tick: {
+      //         format: '%Y-%m-%d %H:%M',
+      //         // rotate: -90
+      //       }
+      //     },
+      //     y2: {
+      //       show: false
+      //     }
+      //   },
+      //   subchart: {
+      //     show: false,
+      //     axis: {
+      //       x: {
+      //         show: false
+      //       }
+      //     }
+      //   },
+      //   legend: {
+      //     hide: [
+      //       "Systolic Blood Pressure (mmHg)",
+      //       "Diastolic Blood Pressure (mmHg)",
+      //     ]
+      //   }
+      // });
+      // var chart3 = c3.generate({
+      //   bindto: d3.select('#chart-3'),
+      //   interaction: {
+      //     enabled: true
+      //   },
+      //   data: {
+      //     x: 'Timestamp',
+      //     xFormat: '%m/%d/%Y %H:%M:%S',
+      //     columns: dataSet3,
+      //     // axes: {
+      //     //   'Heart Rate (bpm)': 'y2'
+      //     // },
+      //     type: 'bar',
+      //     color: function(colour, d) {
+      //       if (d.value == '5') {
+      //         return '#63ff00';
+      //       } else if (d.value == '4') {
+      //         return '#d6ff00';
+      //       } else if (d.value == '3') {
+      //         return '#ffff00';
+      //       } else if (d.value == '2') {
+      //         return '#ffc100';
+      //       } else {
+      //         return '#ff0000';
+      //       }
+      //     },
+      //     tooltip: {
+      //         format: {
+      //             title: function (d) { return 'Data ' + d; },
+      //             value: function (value, ratio, id) {
+      //                 var format = id;
+      //                 return value;
+      //             }
+      //     //            value: d3.format(',') // apply this format to both y and y2
+      //         }
+      //     },
+      //     onmouseover: function (d) {
+      //       console.log(d)
+      //     }
+      //   },
+      //   axis: {
+      //     x: {
+      //       type: 'timeseries',
+      //       tick: {
+      //         format: '%Y-%m-%d %H:%M',
+      //         // rotate: -90
+      //       }
+      //     },
+      //     y: {
+      //       // show: false,
+      //       // tick:{
+      //       //   format: function(d){return null}
+      //       // },
+      //       max: 0.5
+      //
+      //     }
+      //   }
+      // });
     });
 
 
