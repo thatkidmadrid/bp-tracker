@@ -237,6 +237,7 @@
               "render": function(data, type, row) {
                 var monthName = moment(data).format("MMM").toUpperCase();
                 var monthDate = moment(data).format("DD");
+                var year = moment(data).format("YYYY");
                 var time = moment(data).format("HH:mm");
                 // var markup="";
                 // markup += "<div class='date-box'>";
@@ -245,7 +246,7 @@
                 // markup += "<span class='date-time'>"+time+"</span>";
                 // markup += "</div>";
                 // return markup;
-                return monthName + ' ' + monthDate + ' ' + time;
+                return monthName + ' ' + monthDate + ' ' + year +' ' + time;
                 // return data + ' (' + row[3] + ')';
               },
               "name": "date",
